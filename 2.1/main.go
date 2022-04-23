@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -26,7 +25,7 @@ func main() {
 	mux.Handle("/", &myHandler{})
 	mux.HandleFunc("/version", version)
 	mux.HandleFunc("/healthZ", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "200")
+		// fmt.Fprintf(w, "200")
 		w.WriteHeader(http.StatusOK)
 		log.Printf("%s %s %s %d", Clien_IP(r), r.URL, r.Method, 200)
 	})
