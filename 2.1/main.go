@@ -44,6 +44,11 @@ type myHandler struct {
 }
 
 func (*myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	for k, v := range r.Header {
+		for _, vv := range v {
+			w.Header().Set(k, vv)
+		}
+	}
 	w.Write([]byte("this is lvzhancheng http server"))
 	log.Printf("%s %s %s %d", Clien_IP(r), r.URL, r.Method, 200)
 }
