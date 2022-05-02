@@ -5,9 +5,9 @@ ENV GO111MODULE=on \
     CGO_ENABLED=0 \
     GOOS=linux \
     GOPROXY=https://goproxy.cn \
-    GOARCH=amd64 \
+    GOARCH=amd64
 
-    WORKDIR /build
+WORKDIR /build
 
 COPY go.mod .
 COPY go.sum .
