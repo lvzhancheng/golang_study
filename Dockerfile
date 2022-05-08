@@ -18,7 +18,7 @@ COPY 2.2/ .
 
 RUN go build -o http_server .
 
-FROM alpine
+FROM alpine:3.10
 
 COPY --from=builder /build/http_server /
 
