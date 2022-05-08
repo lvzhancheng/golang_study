@@ -3,7 +3,9 @@
 docker build -t lvzhancheng/golang_study:1.0.0 .
 ```
 # 2. 推送到dockerhub
-```docker login
+```
+docker login
+输入账号密码,提示successful表示登录成功
 docker push lvzhancheng/golang_study:1.0.0 
 ```
 # 3. 本地启动
