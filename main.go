@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/spf13/viper"
 )
 
 func Clien_IP(r *http.Request) string {
@@ -23,7 +26,36 @@ func Clien_IP(r *http.Request) string {
 	return IpAddress
 }
 
+var logFile *os.File
+
+func init() {
+	viper.SetConfigFile("config.toml")
+	erro := viper.ReadInConfig()
+	if erro != nil { // 读取配置信息失败
+		panic(fmt.Errorf("fatal error config file: %s", erro))
+	}
+	// viper.OnConfigChange(func(e fsnotify.Event) {
+	// 	log.Println("Config file changed:", e.Name)
+	// })
+	// viper.WatchConfig()
+	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
+	// log.SetPrefix(viper.GetString("log.prefix"))
+	logFile, err := os.OpenFile(viper.GetString("log.path"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalln("Failed to open log file")
+	}
+	mw := io.MultiWriter(os.Stdout, logFile)
+	log.SetOutput(mw)
+}
+
+func closeLogFile() {
+	if logFile != nil {
+		log.Println("closing log file")
+		logFile.Close()
+	}
+}
 func main() {
+	defer closeLogFile()
 	mux := mux.NewRouter()
 	mux.Handle("/", &myHandler{})
 	mux.HandleFunc("/version", version)
@@ -35,8 +67,8 @@ func main() {
 	mux.HandleFunc("/{url:.*}", err)
 
 	server := &http.Server{
-		Addr:         ":80",
-		WriteTimeout: time.Second * 3,
+		Addr:         ":" + viper.GetString("http_server.port"),
+		WriteTimeout: time.Second * viper.GetDuration("http_server.timeout"),
 		Handler:      mux,
 	}
 	log.Println("Starting my httpserver")
@@ -85,7 +117,7 @@ func err(w http.ResponseWriter, r *http.Request) {
 // 监听信号
 func Watch(fns ...func() error) {
 	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGHUP)
 	//阻塞
 	s := <-ch
 	close(ch)
