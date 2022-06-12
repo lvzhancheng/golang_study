@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: http-server
-    version: v1
+    version: 1.3.0
   name: http-server
 spec:
   progressDeadlineSeconds: 600
@@ -12,7 +12,7 @@ spec:
   selector:
     matchLabels:
       app: http-server
-      version: v1
+      version: 1.3.0
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -22,14 +22,14 @@ spec:
     metadata:
       labels:
         app: http-server
-        version: v1
+        version: 1.3.0
     spec:
       containers:
         - env:
             - name: VERSION
-              value: v1
+              value: 1.3.0
           image: >-
-            lvzhancheng/golang_study:1.2.0
+            lvzhancheng/golang_study:1.3.0
           imagePullPolicy: Always
           lifecycle:
             preStop:
@@ -38,6 +38,26 @@ spec:
                   - /bin/sh
                   - "-c"
                   - /pre_stop.sh
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthZ
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /version
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
           name: http-server
           ports:
             - containerPort: 80
