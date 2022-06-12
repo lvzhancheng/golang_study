@@ -5,6 +5,7 @@ metadata:
     app: http-server
     version: 1.3.0
   name: http-server
+  namespace: default
 spec:
   progressDeadlineSeconds: 600
   replicas: 2
@@ -75,6 +76,8 @@ spec:
           volumeMounts:
             - mountPath: /etc/localtime
               name: timezone
+            - mountPath: /config.toml
+              name: volume-1655037785493
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -85,3 +88,7 @@ spec:
             path: /usr/share/zoneinfo/Asia/Shanghai
             type: ""
           name: timezone
+        - configMap:
+            defaultMode: 420
+            name: http-server-cm
+          name: volume-1655037785493
