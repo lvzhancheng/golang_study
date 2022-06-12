@@ -6,13 +6,12 @@ ENV GO111MODULE=on \
     GOPROXY=https://goproxy.cn \
     GOARCH=amd64
 WORKDIR /build
-COPY main.go .
-COPY go.mod .
-COPY go.sum .
+COPY ./ .
 RUN env
 RUN go mod download
 RUN go build -o http_server .
 
 FROM alpine:3.10
 COPY --from=builder /build/http_server /
+COPY config.toml /
 ENTRYPOINT ["/http_server"]
