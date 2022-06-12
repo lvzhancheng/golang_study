@@ -71,14 +71,21 @@ func main() {
 		WriteTimeout: time.Second * viper.GetDuration("http_server.timeout"),
 		Handler:      mux,
 	}
-	log.Println("Starting my httpserver")
-	log.Fatal(server.ListenAndServe())
+	go func() {
+		log.Println("HTTP服务启动", "http://localhost"+server.Addr)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Println(err)
+			os.Exit(0)
+		}
+		log.Println("HTTP服务关闭请求")
+	}()
 	// 监听信号，优雅退出http服务
 	Watch(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		return server.Shutdown(ctx)
 	})
+	log.Println("程序退出")
 }
 
 type myHandler struct {
