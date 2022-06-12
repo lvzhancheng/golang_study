@@ -14,4 +14,5 @@ RUN go build -o http_server .
 FROM alpine:3.10
 COPY --from=builder /build/http_server /
 COPY config.toml /
+COPY pre_stop.sh /
 ENTRYPOINT ["/http_server"]
