@@ -2,4 +2,5 @@
 port = 80
 timeout = 3
 [log]
+level = 4
 path = "http_server.log"

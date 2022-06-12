@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -34,24 +34,18 @@ func init() {
 	if erro != nil { // 读取配置信息失败
 		panic(fmt.Errorf("fatal error config file: %s", erro))
 	}
-	// log模块不支持配置文件热更新
-	// viper.OnConfigChange(func(e fsnotify.Event) {
-	// 	log.Println("Config file changed:", e.Name)
-	// })
-	// viper.WatchConfig()
-	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
-	// log.SetPrefix(viper.GetString("log.prefix"))
+	logrus.SetLevel(logrus.Level(viper.GetInt("log.level")))
 	logFile, err := os.OpenFile(viper.GetString("log.path"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalln("Failed to open log file")
+		logrus.Fatalf("Failed to open log file")
 	}
 	mw := io.MultiWriter(os.Stdout, logFile)
-	log.SetOutput(mw)
+	logrus.SetOutput(mw)
 }
 
 func closeLogFile() {
 	if logFile != nil {
-		log.Println("closing log file")
+		logrus.Infoln("closing log file")
 		logFile.Close()
 	}
 }
@@ -61,9 +55,8 @@ func main() {
 	mux.Handle("/", &myHandler{})
 	mux.HandleFunc("/version", version)
 	mux.HandleFunc("/healthZ", func(w http.ResponseWriter, r *http.Request) {
-		// fmt.Fprintf(w, "200")
 		w.WriteHeader(http.StatusOK)
-		log.Printf("%s %s %s %d", Clien_IP(r), r.URL, r.Method, 200)
+		logrus.Infoln(Clien_IP(r), r.URL, r.Method, 200)
 	})
 	mux.HandleFunc("/{url:.*}", err)
 
@@ -73,12 +66,12 @@ func main() {
 		Handler:      mux,
 	}
 	go func() {
-		log.Println("HTTP服务启动", "http://localhost"+server.Addr)
+		logrus.Infoln("HTTP服务启动", "http://localhost"+server.Addr)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Println(err)
+			logrus.Errorln(err)
 			os.Exit(0)
 		}
-		log.Println("HTTP服务关闭请求")
+		logrus.Infoln("HTTP服务关闭请求")
 	}()
 	// 监听信号，优雅退出http服务
 	Watch(func() error {
@@ -86,7 +79,7 @@ func main() {
 		defer cancel()
 		return server.Shutdown(ctx)
 	})
-	log.Println("程序退出")
+	logrus.Infoln("程序退出")
 }
 
 type myHandler struct {
@@ -99,7 +92,7 @@ func (*myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.Write([]byte("this is lvzhancheng http server"))
-	log.Printf("%s %s %s %d", Clien_IP(r), r.URL, r.Method, 200)
+	logrus.Infoln(Clien_IP(r), r.URL, r.Method, 200)
 }
 func version(w http.ResponseWriter, r *http.Request) {
 	v, exists := os.LookupEnv("VERSION")
@@ -111,14 +104,14 @@ func version(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("version", "0.0.1")
 		w.Write([]byte("VERSION: 0.0.1"))
 	}
-	log.Printf("%s %s %s %d", Clien_IP(r), r.URL, r.Method, 200)
+	logrus.Infoln(Clien_IP(r), r.URL, r.Method, 200)
 }
 func err(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if len(vars) != 0 {
 		w.WriteHeader(404)
 		w.Write(([]byte("404 page not found")))
-		log.Printf("%s %s %s %d", Clien_IP(r), r.URL, r.Method, 404)
+		logrus.Infoln(Clien_IP(r), r.URL, r.Method, 404)
 	}
 }
 
@@ -129,11 +122,11 @@ func Watch(fns ...func() error) {
 	//阻塞
 	s := <-ch
 	close(ch)
-	log.Println("接收到信号", s.String(), "执行关闭函数")
+	logrus.Infoln("接收到信号", s.String(), "执行关闭函数")
 	for i := range fns {
 		if err := fns[i](); err != nil {
-			log.Println(err)
+			logrus.Errorln(err)
 		}
 	}
-	log.Println("关闭函数执行完成")
+	logrus.Infoln("关闭函数执行完成")
 }
