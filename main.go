@@ -34,6 +34,7 @@ func init() {
 	if erro != nil { // 读取配置信息失败
 		panic(fmt.Errorf("fatal error config file: %s", erro))
 	}
+	// log模块不支持配置文件热更新
 	// viper.OnConfigChange(func(e fsnotify.Event) {
 	// 	log.Println("Config file changed:", e.Name)
 	// })
