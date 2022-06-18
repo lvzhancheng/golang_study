@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: www.lvzc.vip
+spec:
+  rules:
+    - host: www.lvzc.vip
+      http:
+        paths:
+          - backend:
+              serviceName: http-server-svc
+              servicePort: 80
+            path: /
+  tls:
+    - hosts:
+        - www.lvzc.vip
+      secretName: www.lvzc.vip-tls
