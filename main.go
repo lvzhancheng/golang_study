@@ -11,7 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"2.1/pkg/metrics"
+	"golang_study/pkg/metrics"
+
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
