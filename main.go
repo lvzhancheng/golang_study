@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
@@ -49,15 +50,22 @@ func closeLogFile() {
 		logFile.Close()
 	}
 }
+
+func randInt(max int) int {
+	rand.Seed(time.Now().UTC().UnixNano())
+	return rand.Intn(max)
+}
+func delay() {
+	delayTime := float64(randInt(2000)) / float64(1000)
+	time.Sleep(time.Second * time.Duration(delayTime))
+	logrus.Infoln("请求延时", delayTime, "秒完成。")
+}
 func main() {
 	defer closeLogFile()
 	mux := mux.NewRouter()
 	mux.Handle("/", &myHandler{})
 	mux.HandleFunc("/version", version)
-	mux.HandleFunc("/healthZ", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		logrus.Infoln(Clien_IP(r), r.URL, r.Method, 200)
-	})
+	mux.HandleFunc("/healthZ", healthZ)
 	mux.HandleFunc("/{url:.*}", err)
 
 	server := &http.Server{
@@ -86,6 +94,7 @@ type myHandler struct {
 }
 
 func (*myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	delay()
 	for k, v := range r.Header {
 		for _, vv := range v {
 			w.Header().Set(k, vv)
@@ -95,6 +104,7 @@ func (*myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logrus.Infoln(Clien_IP(r), r.URL, r.Method, 200)
 }
 func version(w http.ResponseWriter, r *http.Request) {
+	delay()
 	v, exists := os.LookupEnv("VERSION")
 	if exists {
 		w.Header().Add("version", v)
@@ -104,6 +114,11 @@ func version(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("version", "0.0.1")
 		w.Write([]byte("VERSION: 0.0.1"))
 	}
+	logrus.Infoln(Clien_IP(r), r.URL, r.Method, 200)
+}
+func healthZ(w http.ResponseWriter, r *http.Request) {
+	delay()
+	w.WriteHeader(http.StatusOK)
 	logrus.Infoln(Clien_IP(r), r.URL, r.Method, 200)
 }
 func err(w http.ResponseWriter, r *http.Request) {
