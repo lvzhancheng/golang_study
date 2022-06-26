@@ -11,7 +11,9 @@ import (
 	"syscall"
 	"time"
 
+	"2.1/pkg/metrics"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -62,10 +64,12 @@ func delay() {
 }
 func main() {
 	defer closeLogFile()
+	metrics.Register()
 	mux := mux.NewRouter()
 	mux.Handle("/", &myHandler{})
 	mux.HandleFunc("/version", version)
 	mux.HandleFunc("/healthZ", healthZ)
+	mux.Handle("/metrics", promhttp.Handler())
 	mux.HandleFunc("/{url:.*}", err)
 
 	server := &http.Server{
