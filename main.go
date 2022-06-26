@@ -56,9 +56,9 @@ func randInt(max int) int {
 	return rand.Intn(max)
 }
 func delay() {
-	delayTime := float64(randInt(2000)) / float64(1000)
-	time.Sleep(time.Second * time.Duration(delayTime))
-	logrus.Infoln("请求延时", delayTime, "秒完成。")
+	delayTime := randInt(2000)
+	time.Sleep(time.Millisecond * time.Duration(delayTime))
+	logrus.Infoln("请求延时", delayTime, "ms完成。")
 }
 func main() {
 	defer closeLogFile()
