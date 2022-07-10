@@ -1,0 +1,39 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: http-server-vs
+spec:
+  gateways:
+    - http-server-gw
+  hosts:
+    - www.lvzc.vip
+    - uri:
+        prefix: /http-server
+        rewrite:
+          uri: /
+  http:
+    - match:
+        - port: 443
+      route:
+        - destination:
+            host: http-server-svc
+            port:
+              number: 80
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: http-server-gw
+spec:
+  # selector:
+  #   name: http-server-gw
+  servers:
+    - hosts:
+        - www.lvzc.vip
+      port:
+        name: https-default
+        number: 443
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: www.lvzc.vip-tls
